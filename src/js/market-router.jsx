@@ -1,49 +1,65 @@
+import { GetMarket } from './api_market';
+import { GetNFT } from './api_nft';
 import { postJSON } from './postJson';
 
-// 마켓에 리스팅된 NFT들의 목록을 가져온다.
-export async function marketHomeLoader() {
-    console.log(`marketHomeLoader - 시작.. `);
-
-    // const url = "http://221.148.25.234:3333/GetCol";
-    // const data = {
-    //   datas: {
-    //     sort_type: "collection",
-    //     data: ["cryptoguynft"],
-    //     limit : 100
-    //   },
-    // };
-
-    // const result = await postJSON(url, data);
-    // console.log(`marketHomeLoader - Getcol 호출..`, result);
-
-    // const parse_data = result.result.rows[0];    
-    // const serialized_data = parse_data.serialized_data;
-
-    // const collection_data = {
-    //   collection_name: parse_data.collection_name,
-    //   author: parse_data.author,
-    //   market_fee: parse_data.market_fee,
-    //   collection_description: serialized_data.find(item => item.key === "collection_description").value[1],
-    //   display_name: serialized_data.find(item => item.key === "display_name").value[1],
-    //   img_background: "https://ipfs.io/ipfs/"+serialized_data.find(item => item.key === "img_background").value[1],
-    //   img_logo: "https://ipfs.io/ipfs/"+serialized_data.find(item => item.key === "img_logo").value[1],
-    //   url: serialized_data.find(item => item.key === "url").value[1],
-    // }
 
 
-    const market_item_data = [
-        {
-            nft_img : "",
-            nft_name : "",
-            nft_collection : "",
-            nft_id : "",
-            nft_price : ""
-        },
-        {
+export async function markeSaleLoader({params}) {
+  const params_market = {
+    datas: {
+      sort_type: "sale_id",
+      bound: [params.saleId, params.saleId],
+      page: 1,
+      perPage: 1,
+    },
+  };
+  console.log(`params_market - `, params_market);
+  const response_market = await GetMarket(params_market);
+  const market_data = response_market.result[0];
+  console.log(`market_data : `, market_data);
 
-        }
-    ]
 
-    console.log(`marketHomeLoader - 출력 전, market_item_data..`, market_item_data);
-    return market_item_data;     
+  let price_parts = market_data.price.split(" "); // 가격 관련 정보 (문자열 데이터 ex-1.0000 Hep)
+  let number = parseFloat(price_parts[0]); // 문자열을 숫자로 바꾸어줌
+  const formattedNumber = number.toFixed(0); // 소수점 자리 제거
+  const resultString = `${formattedNumber} ${price_parts[1]}`; // 문자열 조립
+
+
+
+  const params_nft = {
+    datas: {
+      sort_type: "nft",
+      scope : market_data.seller,
+      bound: [market_data.asset_id, market_data.asset_id],
+      page: 1,
+      perPage: 1,
+    },
+  };
+  console.log(`params_nft - `, params_nft);
+  const response_nft = await GetNFT(params_nft);
+  const nft_data = response_nft.result[0];
+  console.log(`nft_data : `, nft_data);
+
+
+  const sale_data = {
+    seller : market_data.seller,
+    sale_id :  market_data.sale_id,  
+    offer_id : market_data.offer_id,
+    collection_name: market_data.collection_name,
+    schema_name : market_data.schema_name,
+    asset_id : market_data.asset_id,
+    ori_price : market_data.price,
+    price : resultString,
+    asset_name : market_data.asset_name,
+    asset_img : "https://ipfs.io/ipfs/"+market_data.asset_img,
+    is_sale : market_data.is_sale,
+    buyer : market_data.buyer,
+    nft_att : nft_data.immutable_serialized_data,
+  }
+
+
+  console.log(`markeSaleLoader - 출력 전, sale_data..`, sale_data);
+  return sale_data;
+  
+  
 }

@@ -10,11 +10,13 @@ import {
   PiPercentBold,
   PiCalendarCheckLight,
 } from "react-icons/pi";
+import { VscRefresh } from "react-icons/vsc";
 
 import { useLoaderData, useNavigate } from "react-router-dom";
 import ButtonPrimary from "../../component/basic/btn-primary";
 import { postJSON } from "../../js/postJson";
 import { getJSON } from "../../js/getJson";
+import { GetCategory, GetNFT, GetTemplate } from "../../js/api_nft";
 
 
 export default function ExplorerCollection() {
@@ -22,11 +24,11 @@ export default function ExplorerCollection() {
   console.log(`collection_info : `, collection_info);
 
   const initSelectBtn = [
-    { name: "Stats", isClick: true, menu: <MenuStats /> },
-    { name: "NFTs", isClick: false, menu: <MenuNFTs /> },
+    // { name: "Stats", isClick: true, menu: <MenuStats /> },
+    { name: "NFTs", isClick: true, menu: <MenuNFTs author={collection_info.author} collection_name={collection_info.collection_name} /> },
     { name: "Template", isClick: false, menu: <MenuTemplate /> },
     { name: "Categories", isClick: false, menu: <MenuCategories /> },
-    { name: "Accounts", isClick: false, menu: <MenuAccounts /> },
+    // { name: "Accounts", isClick: false, menu: <MenuAccounts /> },
   ];
   const [selectBtn, setSelectBtn] = useState(initSelectBtn);
   const handleSelectBtn = (selectBtn) => {
@@ -46,8 +48,6 @@ export default function ExplorerCollection() {
 
   return (
     <>
-     
-
       <div className=" bg-slate-500">
         <img
           className="w-full h-1/6"
@@ -63,10 +63,10 @@ export default function ExplorerCollection() {
             <div className="text-3xl font-bold">
               {collection_info.collection_name}
             </div>
-            <ButtonPrimary
+            {/* <ButtonPrimary
               css={"font-bold justify-self-end"}
               text={"관리하기"}
-            />
+            /> */}
           </div>
 
           <div className="mt-10">
@@ -74,7 +74,7 @@ export default function ExplorerCollection() {
             <div className="mt-4">{collection_info.collection_description}</div>
           </div>
 
-          <div className="rounded-xl mt-10 grid grid-cols-5 justify-items-stretch text-center bg-card gap-x-1">
+          <div className="rounded-xl mt-10 grid grid-cols-3 justify-items-stretch text-center bg-card gap-x-1">
             {selectBtn.map((item) => {
               return (
                 <div
@@ -118,14 +118,109 @@ function MenuStats() {
   );
 }
 
-function MenuNFTs() {
+function MenuNFTs({author, collection_name}) {
+  const navigate = useNavigate();
+  const [nftsInfo, setNftsInfo] = useState([]);
+  const [isMoreData, setIsMoreData] = useState(true);
+  const [page, setPage] = useState(1);
+  let perPage = 12;
+
+  const handleClickNFT = (asset_id) => {
+    console.log("handleClickNFT 호출", author, asset_id);
+    navigate(`/explorer/nft/${author}/${asset_id}`);
+  };
+
+  const handleLoadMore = () => {
+    console.log("handleLoadMore 호출");
+    setPage((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    getNFT();
+  }, [page]);
+
+  async function getNFT() {
+    const params = {
+      datas: {
+        sort_type: "collection",
+        scope : author,
+        bound: [collection_name, collection_name],
+        page: page,
+        perPage: perPage,
+      },
+    };
+    console.log(`load data - `, params);
+    const response = await GetNFT(params);
+
+    process_nft_data(response);
+  }
+
+  function process_nft_data(data) {
+    console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
+    const nftsInfo = data.result.map((item) => {
+      return {
+        user_name: item.ram_player,
+        asset_id: item.asset_id,
+        collection_name: item.collection_name,
+        schema_name: item.schema_name,
+        nft_name: item.immutable_serialized_data.find(
+          (item) => item.key === "name"
+        ).value[1],
+        nft_img:
+          "https://ipfs.io/ipfs/" +
+          item.immutable_serialized_data.find((item) => item.key === "img")
+            .value[1],
+      };
+    });
+    console.log(`nftInfo : `, nftsInfo);
+    setNftsInfo((prev) => [...prev, ...nftsInfo]);
+    if (data.result.length < perPage) {
+      setIsMoreData(false);
+    }
+  }
+
   return (
     <>
       <div>
         <div className="text-xl font-bold">Asset in the Collection</div>
         <SearchForm placeholderText={"Search..."} />
+
+        <div className="p-5 mt-5 grid grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* <CreateBtn onClick={handleCreateNFT} text={"NFT 민팅하기"} /> */}
+        {nftsInfo.map((item) => {
+          return <NFTComponent key={item.asset_id} item={item} handleClickNFT={handleClickNFT} />;
+        })}
+      </div>
+
+      {isMoreData && (
+        <div className="mx-4 mt-10 flex justify-center">
+          <button
+            className="border-2 flex items-center rounded-xl py-4 px-20"
+            onClick={handleLoadMore}
+          >
+            <VscRefresh size={25} />
+            <div className="ml-2 text-lg font-bold ">Load More</div>
+          </button>
+        </div>
+      )}
+
       </div>
     </>
+  );
+}
+
+function NFTComponent({ item, handleClickNFT }) {
+  return (
+    <div
+      key={item.asset_id}
+      className="bg-card flex flex-col items-start rounded-xl p-5"
+      onClick={() => handleClickNFT(item.asset_id)}
+    >
+      <img src={item.nft_img} alt=""></img>
+      <div className="mt-2 text-sm font-bold">{item.collection_name}</div>
+      <div className="mt-2 text-orange-400 font-bold">{item.nft_name}</div>
+      <div className="mt-2 font-bold text-slate-500">{`# ${item.asset_id}`}</div>
+    </div>
   );
 }
 
@@ -136,36 +231,63 @@ function MenuTemplate() {
   console.log(`MenuCategories : collection_info : `, collection_info);
 
   const [template_info, setTemplate_info] = useState([]);
+  const [isMoreData, setIsMoreData] = useState(true);
+  const [page, setPage] = useState(1);
+  let perPage = 12;
 
-  useEffect(() => {
-    const url = "http://221.148.25.234:3333/GetTempl";
-    const data = {
-      datas: {
-        sort_type: "collection",
-        data: collection_info.collection_name,
-      },
-    };
-
-    postJSON(url, data).then((data) => {
-      console.log("결과값 : ", data); // JSON 객체이다. by `data.json()` call
-      const template_data = data.result.rows.map((item) => {
-        return {
-          collection_name : collection_info.collection_name,
-          schema_name : item.schema_name,
-          template_id : item.template_id,
-          template_name : item.immutable_serialized_data.find(item => item.key === "name").value[1],
-          template_img : "https://ipfs.io/ipfs/"+item.immutable_serialized_data.find(item => item.key === "img").value[1],
-          issued_supply : item.issued_supply
-        }
-      })
-      setTemplate_info(template_data);
-    });
-  }, []);
 
   const handleOnClickTemplate = (collectionName, templateId) => {
     console.log("handleOnClickTemplate 호출 : ", collectionName, templateId);
     navigate(`/explorer/template/${collectionName}/${templateId}`);
   };
+
+  const handleLoadMore = () => {
+    console.log("handleLoadMore 호출");
+    setPage((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    getTemplate()  
+  }, [page]);
+
+  async function getTemplate() {
+    const params = {
+      datas: {
+        sort_type: "collection",
+        scope : collection_info.collection_name,
+        bound: ["", ""],
+        page: page,
+        perPage: perPage,
+      },
+    };
+    console.log(`load data - `, params);
+    const response = await GetTemplate(params);
+
+    process_tem_data(response);
+  }
+
+  function process_tem_data(data) {
+    console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
+    const listInfo = data.result.map((item) => {
+      return {
+        template_id: item.template_id,
+        collection_name: item.collection_name,
+        issued_supply : item.issued_supply,
+        template_name: item.immutable_serialized_data.find(
+          (item) => item.key === "name"
+        ).value[1],
+        template_img:
+          "https://ipfs.io/ipfs/" +
+          item.immutable_serialized_data.find((item) => item.key === "img")
+            .value[1],
+      };
+    });
+    console.log(`nftInfo : `, listInfo);
+    setTemplate_info((prev) => [...prev, ...listInfo]);
+    if (data.result.length < perPage) {
+      setIsMoreData(false);
+    }
+  }
 
 
   return (
@@ -196,6 +318,20 @@ function MenuTemplate() {
             );
           })}
         </div>
+
+        {isMoreData && (
+        <div className="mx-4 mt-10 flex justify-center">
+          <button
+            className="border-2 flex items-center rounded-xl py-4 px-20"
+            onClick={handleLoadMore}
+          >
+            <VscRefresh size={25} />
+            <div className="ml-2 text-lg font-bold ">Load More</div>
+          </button>
+        </div>
+      )}
+
+
       </div>
     </>
   );
@@ -205,27 +341,46 @@ function MenuCategories() {
   const collection_info = useLoaderData(); // 콜렉션의 정보를 가져온다. collection_name, author, market_fee 등등.
   console.log(`MenuCategories : collection_info : `, collection_info);
   const [catetory_info, setCatetory_info] = useState([]);
+  const [isMoreData, setIsMoreData] = useState(true);
+  const [page, setPage] = useState(1);
+  
+  let perPage = 10;
 
   useEffect(() => {
-    const url = "http://221.148.25.234:3333/GetSchema";
-    const data = {
+    getCategory();
+  }, [page]);
+
+  async function getCategory() {
+    const params = {
       datas: {
         sort_type: "collection",
-        data: collection_info.collection_name,
+        scope : collection_info.collection_name,
+        bound: ["", ""],
+        page: page,
+        perPage: perPage,
       },
     };
+    console.log(`load data - `, params);
+    const response = await GetCategory(params);
 
-    postJSON(url, data).then((data) => {
-      console.log("결과값 : ", data); // JSON 객체이다. by `data.json()` call
-      const schema_data = data.result.rows.map((item) => {
-        return {
-          collection_name : collection_info.collection_name,
-          schema_name : item.schema_name,
-        }
-      })
-      setCatetory_info(schema_data);
+    process_category_data(response);
+  }
+
+  function process_category_data(data) {
+    console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
+    const listInfo = data.result.map((item) => {
+      return {
+        schema_name: item.schema_name,
+        att_count : item.format.length,
+      };
     });
-  }, []);
+    console.log(`nftInfo : `, listInfo);
+    setCatetory_info((prev) => [...prev, ...listInfo]);
+    if (data.result.length < perPage) {
+      setIsMoreData(false);
+    }
+  }
+
 
   return (
     <>

@@ -15,7 +15,7 @@ import CardInput from "../../component/creator/card-input";
 import CardPrimary from "../../component/creator/card-primary";
 import ButtonPrimary from "../../component/basic/btn-primary";
 import CropImage from "../../component/basic/CropImage";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 const customModalStyles = {
   overlay: {
@@ -123,6 +123,19 @@ export default function CreateCollection() {
   };
   const navigate = useNavigate();
 
+  const {
+    isLogin,
+    setIsLogin,
+    ref_user_data,
+    ref_trx_data,
+    ref_wallet_start,
+    ref_status,
+    ref_result,
+    ref_wallet_finish,
+  } = useOutletContext();
+  console.log(`CreateCollection : `, useOutletContext());
+  console.log(`CreateCollection 2 : `, ref_user_data.ref_user_data);
+
   // 콜렉션 관련 입력 받을 정보
 
   const [collectionInput, setCollectionInput] = useState("");
@@ -134,8 +147,8 @@ export default function CreateCollection() {
     submitCollectionData();
   };
 
-  const btnRef = useRef(null);
-  const data_Ref = useRef(null);
+  // const btnRef = useRef(null);
+  // const data_Ref = useRef(null);
 
   async function submitCollectionData() {
 
@@ -153,79 +166,76 @@ export default function CreateCollection() {
     const url_img_logo =  await postJSON(url, data_logo_img); // 로고 이미지 ipfs에 저장
     const url_img_background =  await postJSON(url, data_logo_background); // 배경 이미지 ipfs에 저장
 
-    const ipfs_url = "https://ipfs.io/ipfs/"; // ipfs의 url
-    const path_ipfs_img_logo = ipfs_url+url_img_logo.result; // 로고 이미지의 url 값
-    const path_ipfs_img_background = ipfs_url+url_img_background.result; // 배경 이미지의 url 값
+    const path_ipfs_img_logo = url_img_logo.result; // 로고 이미지의 url 값
+    const path_ipfs_img_background = url_img_background.result; // 배경 이미지의 url 값
 
 
     // 2. data 형식에 맞게 데이터 재조립...
 
     // input에 들어가야할 데이터, 테스트용 하드코딩
-    const new_data = {
-      author: "test3",
-      collection_name: "cryptoguynft",
-      allow_notify: true,
-      authorized_accounts: [],
-      notify_accounts: [],
-      market_fee: 0,
-      data: [
-        {
-          key: "display_name", 
-          value: ["string", "crypto guys의 nft"],
+    const new_data = [
+      {
+        action_account: "eosio.nft",
+        action_name: "createcol",
+        data: {
+          author: localStorage.getItem("account_name"),
+          collection_name: collectionInput.collection_name,
+          allow_notify: true,
+          authorized_accounts: [],
+          notify_accounts: [],
+          market_fee: 0,
+          data: [
+            { key: "display_name", value: ["string", collectionInput.display_name]},
+            { key: "collection_description", value: ["string", collectionInput.collection_description]},
+            { key: "url", value: ["string", collectionInput.url]},
+            { key: "img_logo", value: ["string", path_ipfs_img_logo] },
+            { key: "img_background", value: ["string", path_ipfs_img_background ]},
+          ],
         },
-        {
-          key: "collection_description",
-          value: ["string", "crypto guys의 게임 플레이를 위한 nft 모음입니다."],
+      },
+      {
+        action_account: "eosio.nft",
+        action_name: "addcolauth",
+        data: {
+          collection_name: collectionInput.collection_name,
+          account_to_add: localStorage.getItem("account_name")
         },
-        { key: "url", value: ["string", collectionInput.url] },
-        { key: "img_logo", value: ["string", path_ipfs_img_logo] },
-        { key: "img_background", value: ["string", path_ipfs_img_background] },
-      ],
-    };
+      },
+    ];
 
-    // const new_data = {
-    //   author: "test3",
-    //   collection_name: collectionInput.collection_name,
-    //   allow_notify: true,
-    //   authorized_accounts: [],
-    //   notify_accounts: [],
-    //   market_fee: collectionInput.market_fee,
-    //   data: [
-    //     {
-    //       key: "display_name", 
-    //       value: ["string", collectionInput.display_name],
-    //     },
-    //     {
-    //       key: "collection_description",
-    //       value: ["string", collectionInput.collection_description],
-    //     },
-    //     { key: "url", value: ["string", collectionInput.url] },
-    //     { key: "img_logo", value: ["string", path_ipfs_img_logo] },
-    //     { key: "img_background", value: ["string", path_ipfs_img_background] },
-    //   ],
-    // };
 
     console.log(`new_data 출력 : `, new_data);
-    data_Ref.current.value = JSON.stringify(new_data);  
+    ref_trx_data.ref_trx_data.current.value = JSON.stringify(new_data);
+    ref_user_data.ref_user_data.current.value = localStorage.getItem('account_name');  
 
-    if (btnRef.current) {
+    if (ref_wallet_start.ref_wallet_start.current && ref_wallet_finish.ref_wallet_finish.current) {
       console.log(`트랜잭션 발생 버튼 클릭시키기..`);
-      btnRef.current.click();      
+      ref_wallet_finish.ref_wallet_finish.current.addEventListener('click', handleCompleteTrx);
+      ref_wallet_start.ref_wallet_start.current.click();      
     }
   
   }
   
-  const ref_result = useRef();
-  const ref_status = useRef();
 
   const handleCompleteTrx = () => {
     console.log("handleCompleteTrx 호출");
 
-    console.log(`transaction id : `, ref_result.current.value);
-    console.log(`transaction id2 : `, JSON.parse(ref_result.current.value).transaction_id);
+    console.log(`transaction id : `, ref_result.ref_result.current.value);
+      
+    closeWaitingModal(); // 트랜잭션 대기 중인 모달을 닫아준다.
+    openSuccessModal(JSON.parse(ref_result.ref_result.current.value)[0]);
+    ref_wallet_finish.ref_wallet_finish.current.removeEventListener("click", handleCompleteTrx);
+  }
 
-    closeWaitingModal();
-    openSuccessModal(JSON.parse(ref_result.current.value).transaction_id);
+  const handleTest = () => {
+    console.log("handleTest 호출");
+    if(ref_trx_data.current) {
+      console.log(`ref_trx_data 있음`);
+
+    } else {
+      console.log(`ref_trx_data 없음`);
+    }
+  
   }
 
   const handleCollectionInputChange = (e) => {
@@ -325,7 +335,6 @@ export default function CreateCollection() {
   const [shortId, setShortId] = useState('');
   function openSuccessModal(trx_id) {
     setModalSuccessIsOpen(true);
-    const url_explorer = "http://cryptoexplorer.store/Transaction/";
     setTrxId(trx_id);
     setShortId(short_trx_id(trx_id));    
   }
@@ -371,43 +380,12 @@ export default function CreateCollection() {
 
   function aferBackgroundImageCrop() {}
 
-  const handleTest = async () => {
-    // openWaitingModal();
-    closeWaitingModal();
-    openSuccessModal("1234444444444444444444444444444444444444444444444444444444");
-    // openLogoImageCrop();
-    // console.log("collection 데이터", collectionInput.img_logo);
-    // const url = "http://221.148.25.234:3333/UploadIPFS";
-    // const data = { img: collectionInput.img_logo };
 
-    // postJSON(url, data).then((data) => {
-    //   console.log(data); // JSON 객체이다. by `data.json()` call
-    // });
-  };
 
   return (
     <>
-      {/* <button onClick={handleTest}>테스트</button> */}
-      <input id="auth_name" type="hidden" value={"test3"} readOnly></input>
-      <input ref={data_Ref} id="data" type="hidden" />
-      <input
-        id="action_account"
-        type="hidden"
-        value={"eosio.nft"}
-        readOnly
-      ></input>
-      <input
-        id="action_name"
-        type="hidden"
-        value={"createcol"}
-        readOnly
-      ></input>
-      <button id="transaction" ref={btnRef}></button>
-
-      <button id="transaction_complete" className="sr-only" onClick={handleCompleteTrx}></button>
-      <input id="result" type="hidden" ref={ref_result}></input>
-      <input id="status" type="hidden" ref={ref_status}></input>
-
+    <button onClick={handleTest}>테스트</button>
+      
       <Modal
         isOpen={modalWaitingIsOpen}
         onAfterOpen={afterWaitingModal}
@@ -490,7 +468,7 @@ export default function CreateCollection() {
 
       <CreatorHeader
         title="Create New Collection"
-        content="먼저 컬렉션을 만드세요. 그런 다음 자신의 컬렉션에 NFT를 생성할 수 있습니다."
+        content="dd먼저 컬렉션을 만드세요. 그런 다음 자신의 컬렉션에 NFT를 생성할 수 있습니다."
       />
 
       {/* NFT Collection 입력 부분 */}

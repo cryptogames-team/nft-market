@@ -1,12 +1,68 @@
-import React, { useState } from 'react'
-import { useLoaderData, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from 'react'
+import { useLoaderData, useNavigate, useOutletContext } from "react-router-dom";
 import ButtonPrimary from '../../component/basic/btn-primary';
 import Modal from "react-modal";
 import { GiCancel } from "react-icons/gi";
+import {
+  AiOutlineSearch,
+  AiOutlineAreaChart,
+  AiOutlineLoading3Quarters,
+  AiOutlineCheckCircle,
+} from "react-icons/ai";
+
+const customModalStyles = {
+  overlay: {
+    backgroundColor: " rgba(0, 0, 0, 0.4)",
+    width: "100%",
+    height: "100vh",
+    zIndex: "10",
+    position: "fixed",
+    top: "0",
+    left: "0",
+  },
+  content: {
+    width: "500px",
+    height: "480px",
+    zIndex: "150",
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -70%)",
+    borderRadius: "10px",
+    borderColor: "rgb(0,0,0)",
+    boxShadow: "2px 2px 2px rgba(0, 0, 0, 0.25)",
+    color: "white",
+    backgroundColor: "#1A203C",
+    justifyContent: "center",
+    overflow: "auto",
+  },
+};
 
 export default function ExplorerNFT() {
   const nft_info = useLoaderData(); // nft의 정보를 가져온다.
   console.log(`nft_info : `, nft_info);
+
+  const {
+    isLogin,
+    setIsLogin,
+    ref_user_data,
+    ref_trx_data,
+    ref_wallet_start,
+    ref_status,
+    ref_result,
+    ref_wallet_finish,
+  } = useOutletContext();
+
+  const navigate = useNavigate();
+  const [isMine, setIsMine] = useState(false);
+  useEffect(() => {
+    // if(nft_info.ram_player === localStorage.getItem("account_name")) {
+    //   setIsMine(true);
+    // }
+  }, []);
+
+  console.log(`explorer-nft : `, useOutletContext());
+  
 
 
   const [modalListingIsOpen, setModalListingIsOpen] = useState(false);
@@ -20,10 +76,160 @@ export default function ExplorerNFT() {
     setModalListingIsOpen(false);    
   }
 
+
+  const handleSellNFT = (price) => {
+    console.log("handleSellNFT 호출");
+    openWaitingModal();
+
+    const user_name = localStorage.getItem('account_name'); // 세션 요청으로부터 user의 이름을 가져와야함.
+    const new_data = [
+      {
+        action_account: "eosio.market",
+        action_name: "uploadmarket",
+        data: {
+          seller: user_name,
+          col_name: nft_info.collection_name,
+          schema_name: nft_info.schema_name,
+          asset_id: parseInt(nft_info.asset_id),
+          price: price,
+          asset_name: nft_info.nft_name.split(' ').join(''),
+          asset_img: nft_info.nft_ori_img,
+        },
+      },
+      {
+        action_account: "eosio.nft",
+        action_name: "createoffer",
+        data: {
+          sender: user_name,
+          recipient: "eosio.market",
+          sender_asset_ids: [parseInt(nft_info.asset_id)],
+          recipient_asset_ids: [],
+          memo: "dd",
+        },
+      },
+    ];
+
+    console.log(`트랜잭션에 담아줄 데이터 : `, new_data);
+    
+    ref_trx_data.ref_trx_data.current.value = JSON.stringify(new_data);  
+    ref_user_data.ref_user_data.current.value = localStorage.getItem('account_name');
+    if (ref_wallet_start.ref_wallet_start.current && ref_wallet_finish.ref_wallet_finish.current) {
+      console.log(`트랜잭션 발생 버튼 클릭시키기..`);
+      ref_wallet_finish.ref_wallet_finish.current.addEventListener('click', handleCompleteTrx);
+      ref_wallet_start.ref_wallet_start.current.click();      
+    }
+  
+  }
+
+  // 모달 창 관련 변수
+  const [modalWaitingIsOpen, setModalWaitingIsOpen] = useState(false);
+  const [modalSuccessIsOpen, setModalSuccessIsOpen] = useState(false);
+
+  // 트랜잭션 대기 관련 모달..?
+  function openWaitingModal() {
+    setModalWaitingIsOpen(true);
+  }
+
+  function closeWaitingModal() {
+    setModalWaitingIsOpen(false);
+  }
+
+  function afterWaitingModal() {
+    console.log("트랜잭션 실행");
+  }
+
+  
+  const [trxId, setTrxId] = useState("");
+  const [shortId, setShortId] = useState("");
+  function openSuccessModal(trx_id) {
+    setModalSuccessIsOpen(true);
+    setTrxId(trx_id);
+    setShortId(short_trx_id(trx_id));
+  }
+
+  function short_trx_id(keyString) {
+    const maxLength = 10; // 원하는 최대 길이
+
+    if (keyString.length <= maxLength) {
+      return keyString;
+    }
+
+    const shortenedKey = `${keyString.substring(
+      0,
+      maxLength / 2
+    )}...${keyString.substring(keyString.length - maxLength / 2)}`;
+    return shortenedKey;
+  }
+
+  function closeSuccessModal() {
+    setModalSuccessIsOpen(false);
+    navigate(`/profile?selectedTab=MyListings`);  
+  }
+
+  function afterSuccessModal() {}
+
+  const handleCompleteTrx = () => {
+    console.log("handleCompleteTrx 호출");
+
+    console.log(`transaction id : `, ref_result.ref_result.current.value);
+    console.log(
+      `transaction id2 : `,
+      JSON.parse(ref_result.ref_result.current.value).transaction_id
+    );
+
+    closeWaitingModal();
+    openSuccessModal(JSON.parse(ref_result.ref_result.current.value)[0]);
+    ref_wallet_finish.ref_wallet_finish.current.removeEventListener('click', handleCompleteTrx);
+  };
+
   
   return (
     <>
-      <NFTMarketModal nft_info={nft_info} modalIsOpen={modalListingIsOpen} modalClose={handleMarketModalClose} />
+      <Modal
+        isOpen={modalWaitingIsOpen}
+        onAfterOpen={afterWaitingModal}
+        style={customModalStyles}
+      >
+        <div className="font-san w-full h-full flex flex-col justify-center items-center">
+          <AiOutlineLoading3Quarters size={80} />
+          <div className="mt-10 text-4xl">트랜잭션 생성 중</div>
+          <div className="mt-10">지갑을 통해 트랜잭션을 확인해주세요. </div>
+          {/* <button onClick={closeWaitingModal}>닫기</button> */}
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={modalSuccessIsOpen}
+        onAfterOpen={afterSuccessModal}
+        style={customModalStyles}
+      >
+        <div className="font-san w-full h-full flex flex-col justify-center">
+          <div className="flex-grow flex flex-col justify-center items-center">
+            <AiOutlineCheckCircle className="text-lime-500" size={80} />
+            <div className="mt-10 text-4xl">트랜잭션 성공</div>
+            <div className="mt-10">
+              트랜잭션 ID :{" "}
+              <a
+                className=" text-orange-500 font-bold"
+                href={`http://cryptoexplorer.store/Transaction/${trxId}`}
+                target="_blank"
+              >
+                {shortId}
+              </a>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <button
+              className="mt-10 border rounded-3xl w-11/12 h-9"
+              onClick={closeSuccessModal}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <NFTMarketModal handleSellNFT={handleSellNFT} nft_info={nft_info} modalIsOpen={modalListingIsOpen} modalClose={handleMarketModalClose} />
 
       <div className="mt-7 text-xs font-bold">
         {`Explorer > ${nft_info.collection_name} > ${nft_info.nft_name}`}
@@ -31,7 +237,7 @@ export default function ExplorerNFT() {
 
       <div className="mt-5 text-2xl font-bold">
         <span>NFT : </span>
-        <span className="text-orange-400">{`${nft_info.nft_name},`}</span>
+        <span className="text-orange-400">{`${nft_info.nft_name}`}</span>
       </div>
 
       <NFTInfo nft_info={nft_info} marketModalBtn={handleMarketModalOpen} />
@@ -74,6 +280,9 @@ function NFTInfo({nft_info, marketModalBtn}) {
               <div className="text-slate-500">최저 제안 가격</div>
               <div className="text-lime-500 font-bold p-1">-</div>
             </div>
+            {
+
+            }
             <ButtonPrimary
               text={"마켓 등록"}
               css={"justify-self-end self-center"}
@@ -93,7 +302,7 @@ function NFTAttritute({ nft_info }) {
         <tbody>
           {nft_info.immutable_serialized_data.map((item) => {
             return (
-              <tr>
+              <tr key={item.key} >
                 <td className="p-4 border border-slate-500 font-bold">
                   {item.key}
                 </td>
@@ -109,8 +318,8 @@ function NFTAttritute({ nft_info }) {
   );
 }
 
-function NFTMarketModal({nft_info, modalIsOpen, modalClose}) {
-  const customModalStyles = {
+function NFTMarketModal({handleSellNFT, nft_info, modalIsOpen, modalClose}) {
+  const ModalStyles = {
     overlay: {
       backgroundColor: " rgba(0, 0, 0, 0.4)",
       width: "100%",
@@ -137,16 +346,19 @@ function NFTMarketModal({nft_info, modalIsOpen, modalClose}) {
       overflow: "auto",
     },
   };
-  const navigate = useNavigate();
+
+  const [price, setPrice] = useState();
 
   const handleGoMarket = () => {
-    console.log("handleGoMarket 호출");
-    navigate(`/market`);      
+    const formattedString = formatNumberWithHep(parseInt(price));
+    console.log("handleGoMarket 호출", formattedString);
+    handleSellNFT(formattedString)    
+    modalClose();
   }
 
   return (
     <>
-      <Modal isOpen={modalIsOpen} style={customModalStyles}>
+      <Modal isOpen={modalIsOpen} style={ModalStyles}>
         <div className="flex flex-col items-center">
           <GiCancel size={25} className="self-end" onClick={modalClose} />
           <div className="font-bold text-2xl">마켓에 NFT 등록하기</div>
@@ -164,7 +376,7 @@ function NFTMarketModal({nft_info, modalIsOpen, modalClose}) {
                 </button>
               </div>
 
-              <ListingPrice />
+              <ListingPrice price={price} setPrice={setPrice} />
               <div className="mt-4 bg-body rounded-lg p-3">
                 <div className="font-bold text-lg">
                   <span>수수료 :</span>
@@ -214,6 +426,16 @@ function NFTMarketModal({nft_info, modalIsOpen, modalClose}) {
   );  
 }
 
+function formatNumberWithHep(input) {
+  if (Number.isInteger(input)) {
+    const formattedNumber = input.toFixed(4); // 소수점 자리수를 4자리로 설정
+    return `${formattedNumber} HEP`;
+  } else {
+    // 입력이 정수가 아닌 경우에 대한 처리
+    return '유효한 정수가 아닙니다';
+  }
+}
+
 function NFTComponent({ item}) {
   return (
     <div
@@ -227,7 +449,13 @@ function NFTComponent({ item}) {
   );
 }
 
-function ListingPrice({ params }) {
+function ListingPrice({ price, setPrice }) {
+
+  const handleOnChange = (e) => {
+    console.log("handleOnChange 호출", e.target.value);
+    setPrice(e.target.value);  
+  }
+  
   return (
     <div className="mt-4 bg-body rounded-lg p-3">
       <div className="font-bold text-lg">가격 제시</div>
@@ -237,21 +465,23 @@ function ListingPrice({ params }) {
         <div className="ml-4 flex-grow border border-slate-400 rounded-md">
           <input
             className="bg-inherit w-full p-2"
-            type="num"
+            type="number"
             placeholder="단위 : Hep"
+            value={price}
+            onChange={handleOnChange}
           ></input>
         </div>
       </div>
-      <div className="mt-4 flex p-1 items-center">
+      {/* <div className="mt-4 flex p-1 items-center">
         <div className="font-bold">순수익</div>
         <div className="ml-4 flex-grow border border-slate-400 rounded-md">
           <input
             className="bg-inherit w-full p-2"
-            type="num"
+            type="number"
             placeholder="단위 : Hep"
           ></input>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -8,6 +8,10 @@ import {
   AiOutlineLoading3Quarters,
   AiOutlineCheckCircle,
 } from "react-icons/ai";
+import { VscRefresh } from "react-icons/vsc";
+import { postJSON } from "../../js/postJson";
+import { GetNFT } from "../../js/api_nft";
+import { useNavigate } from "react-router-dom";
 
 Modal.setAppElement("#root");
 
@@ -40,157 +44,184 @@ const customModalStyles = {
 };
 
 export default function TradingHome() {
-  const mock_data = [
-    {
-      asset_id: "1099511627779",
-      collection_name: "cryptoguynft",
-      schema_name: "bodies",
-      template_id: 1,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "yellow body",
-      template_img: "QmQTHBEA6gYsemkcMNxnBkvNx49Jfk5kKvVhrgMEPKQmDn",
-    },
-    {
-      asset_id: "1099511627784",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 2,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "blue body",
-      template_img: "QmR6W9mzkPAU3jg7hAVJYhFX8b3xe5S3csi44f9zut7R7D",
-    },
-    {
-      asset_id: "1099511627793",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 3,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "orange body",
-      template_img: "QmRD4QSFHMx35R9v4HCKnLj4MAM21Yz5VkJ6xcwm8CJhRQ",
-    },
-    {
-      asset_id: "1099511627794",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 7,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "blue mask",
-      template_img: "QmexuD6bZqG3XCpXjbMNvuX3hdtGAjDZkrgPmaUZSFJY1h",
-    },
-    {
-      asset_id: "1099511627795",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 8,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "red ribon",
-      template_img: "QmSfrvAWNVLkwRHKkeg546ZTCKvzW4C9ueQNsMzEUzm8px",
-    },
-  ];
 
-  const opponent_mock_data = [
-    {
-      asset_id: "1099511627778",
-      collection_name: "cryptoguynft",
-      schema_name: "bodies",
-      template_id: 4,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "pink body",
-      template_img: "QmTYCFPrkTJLJiiztwYwArfuQVQe7wpTrS4aLKfSbNgWsz",
-    },
-    {
-      asset_id: "1099511627780",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 5,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "puple body",
-      template_img: "QmfJX4DSoVCAnXFD2uMDbY5y2nogdrR4hURi1UqtjRwncy",
-    },
-    {
-      asset_id: "1099511627781",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 6,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "green body",
-      template_img: "QmNPjQZCzh3utVgtjSMjqnXBVMWCQke6fcauTNxY8fnTKY",
-    },
-    {
-      asset_id: "1099511627782",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 9,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "pink belt",
-      template_img: "QmNojDuUmsYnhDfZPdE7rS4U6skBEvzfjYzmx1yYA6auBm",
-    },
-    {
-      asset_id: "1099511627783",
-      collection_name: "cryptoguynft",
-      schema_name: "bodypart",
-      template_id: 10,
-      ram_payer: "test3",
-      backed_tokens: [],
-      immutable_serialized_data: [],
-      mutable_serialized_data: [],
-      template_name: "green tie",
-      template_img: "QmRPGR27s1L5VcBxV6LM3ZrYAZNBsLsoDPFhGvbNC5ao82",
-    },
-  ];
+  const navigate = useNavigate();
 
-  const [nfts, setNfts] = useState(mock_data);
-  const [choiceNfts, setChoiceNfts] = useState("");
+  let perPage = 12;
+  
+  const [nftsInfo, setNftsInfo] = useState([]);
+  const [isMoreData, setIsMoreData] = useState(true);
+  const [page, setPage] = useState(1);
+  const [choiceNfts, setChoiceNfts] = useState([]);
+  
 
-  const [opponentNfts, setOpponentNfts] = useState(opponent_mock_data);
-  const [opponentChoiceNfts, setOpponentChoiceNfts] = useState("");
+  const [opponentName, setOpponentName] = useState("");
+  const [opponentNfts, setOpponentNfts] = useState([]);
+  const [isMoreOpponentData, setIsMoreOpponentData] = useState(true);
+  const [opponentPage, setOpponentPage] = useState(1);
+  const [opponentChoiceNfts, setOpponentChoiceNfts] = useState([]);
+
+  useEffect(() => {
+    getNFT();   
+  }, [page]);
+
+  useEffect(() => {
+    getOpponentNFT();      
+  }, [opponentName]);
+
+  useEffect(() => {
+  
+  }, [opponentPage]);
+
+  useEffect(() => {
+    console.log(`상대편의 nft..`, opponentNfts);  
+  }, [opponentNfts]);
+
+
+
+  const user_name = localStorage.getItem("account_name"); // 세션 처리후 해당 데이터에 user_name을 입력해주어야한다.
+  async function getNFT() {
+    const params = {
+      datas: {
+        sort_type: "user_name",
+        scope : user_name,
+        bound: [user_name, user_name],
+        page: page,
+        perPage: perPage,
+      },
+    };
+    console.log(`load data - `, params);
+    const response = await GetNFT(params);
+
+    process_nft_data(response);
+  }
+
+  function process_nft_data(data) {
+    console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
+    const nftsInfo = data.result.map((item) => {
+      return {
+        user_name: item.ram_player,
+        asset_id: item.asset_id,
+        collection_name: item.collection_name,
+        schema_name: item.schema_name,
+        nft_name: item.immutable_serialized_data.find(
+          (item) => item.key === "name"
+        ).value[1],
+        nft_img:
+          "https://ipfs.io/ipfs/" +
+          item.immutable_serialized_data.find((item) => item.key === "img")
+            .value[1],
+      };
+    });
+    console.log(`nftInfo : `, nftsInfo);
+    setNftsInfo((prev) => [...prev, ...nftsInfo]);
+    if (data.result.length < perPage) {
+      setIsMoreData(false);
+    } else {
+      setIsMoreData(true);
+    }
+  }
+
+  const handleLoadMore = () => {
+    console.log("handleLoadMore 호출");
+    setPage((prev) => prev + 1);
+  };
 
   const handleChoiceNFT = (asset_id) => {
     console.log("handleChoiceNFT 호출");
-    const choiceItem = nfts.find((item) => item.asset_id === asset_id);
-    console.log(`choiceItem : `, choiceItem);
-    setChoiceNfts(choiceItem);
+    
+    if(choiceNfts.find(item => item.asset_id === asset_id)) {
+      alert("이미 선택한 아이템입니다.")
+    } else {
+      const choiceItem = nftsInfo.find((item) => item.asset_id === asset_id);
+      setChoiceNfts(prev => [...prev, choiceItem]);
+      console.log(`choiceItem : `, choiceItem);
+    }
+    
   };
 
-  const handleOpponentChoiceNFT = (asset_id) => {
-    console.log("handleOpponentChoiceNFT 호출");
-    const choiceItem = opponentNfts.find((item) => item.asset_id === asset_id);
-    console.log(`choiceItem : `, choiceItem);
-    setOpponentChoiceNfts(choiceItem);
+  const handleRemoveNFT = (asset_id) => {
+    console.log("handleRemoveNFT 호출");
+    setChoiceNfts(prev => {
+      const newItems = prev.filter(item => item.asset_id !== asset_id)
+      return newItems;
+    });
   };
 
-  const [opponentName, setOpponentName] = useState("");
+
   const handleOnChangeOpponentName = (e) => {
     console.log("handleOnChangeOpponentName 호출", e.target.value);
     setOpponentName(e.target.value);
   };
+
+  async function getOpponentNFT() {
+    const params = {
+      datas: {
+        sort_type: "user_name",
+        scope : opponentName,
+        bound: [opponentName, opponentName],
+        page: page,
+        perPage: perPage,
+      },
+    };
+    console.log(`load data - `, params);
+    const response = await GetNFT(params);
+
+    process_opponentNft_data(response);
+  }
+
+  function process_opponentNft_data(data) {
+    console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
+    const nftsInfo = data.result.map((item) => {
+      return {
+        user_name: item.ram_player,
+        asset_id: item.asset_id,
+        collection_name: item.collection_name,
+        schema_name: item.schema_name,
+        nft_name: item.immutable_serialized_data.find(
+          (item) => item.key === "name"
+        ).value[1],
+        nft_img:
+          "https://ipfs.io/ipfs/" +
+          item.immutable_serialized_data.find((item) => item.key === "img")
+            .value[1],
+      };
+    });
+    console.log(`상대편의 nftInfo : `, nftsInfo);
+    // setOpponentNfts((prev) => [...prev, ...nftsInfo]);
+    setOpponentNfts(nftsInfo);
+    if (data.result.length < perPage) {
+      setIsMoreOpponentData(false);
+    }
+  }
+
+  const handleLoadMoreOpponent = () => {
+    console.log("handleLoadMoreOpponent 호출");
+    setOpponentPage((prev) => prev + 1);
+  };
+
+  
+  const handleOpponentChoiceNFT = (asset_id) => {
+    
+    console.log("handleOpponentChoiceNFT 호출");
+    
+    if(opponentChoiceNfts.find(item => item.asset_id === asset_id)) {
+      alert("이미 선택한 아이템입니다.")
+    } else {
+      const choiceItem = opponentNfts.find((item) => item.asset_id === asset_id);
+      setOpponentChoiceNfts(prev => [...prev, choiceItem]);
+      console.log(`choiceItem : `, choiceItem);
+    }
+  };
+
+  const handleRemoveNFTOpponent = (asset_id) => {
+    console.log("handleRemoveNFTOpponent 호출");
+    setOpponentChoiceNfts(prev => {
+      const newItems = prev.filter(item => item.asset_id !== asset_id)
+      return newItems;
+    });
+  };
+
 
   const handleOffer = () => {
     console.log("handleOffer 호출");
@@ -199,13 +230,14 @@ export default function TradingHome() {
     const opponent_assetId = parseInt(opponentChoiceNfts.asset_id, 10);
 
     const new_data = {
-      sender: "test3",
-      recipient: "test2",
-      sender_asset_ids: [my_assetId],
-      recipient_asset_ids: [opponent_assetId],
-      memo: "test3",
+      sender: localStorage.getItem("account_name"),
+      recipient: opponentName,
+      sender_asset_ids: choiceNfts.map(item => parseInt(item.asset_id, 10)),
+      recipient_asset_ids: opponentChoiceNfts.map(item => parseInt(item.asset_id, 10)),
+      memo: "교환 제안",
     };
 
+    console.log(`handleOffer - 생성된 데이터 : `, new_data);
     data_Ref.current.value = JSON.stringify(new_data);  
     if (btnRef.current) {
       console.log(`트랜잭션 발생 버튼 클릭시키기..`);
@@ -240,7 +272,6 @@ export default function TradingHome() {
   const [shortId, setShortId] = useState("");
   function openSuccessModal(trx_id) {
     setModalSuccessIsOpen(true);
-    const url_explorer = "http://cryptoexplorer.store/Transaction/";
     setTrxId(trx_id);
     setShortId(short_trx_id(trx_id));
   }
@@ -261,7 +292,7 @@ export default function TradingHome() {
 
   function closeSuccessModal() {
     setModalSuccessIsOpen(false);
-    // navigate("/creator");
+    navigate("profile?selectedTab=Transfer");
   }
 
   function afterSuccessModal() {}
@@ -281,7 +312,7 @@ export default function TradingHome() {
 
   return (
     <>
-      <input id="auth_name" type="hidden" value={"test3"} readOnly></input>
+      <input id="auth_name" type="hidden" value={localStorage.getItem("account_name")} readOnly></input>
       <input ref={data_Ref} id="data" type="hidden" />
       <input
         id="action_account"
@@ -349,7 +380,7 @@ export default function TradingHome() {
         </div>
       </Modal>
 
-      <div className="mt-10 grid grid-cols-1 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 lg:grid-cols-2">
         <div className="text-2xl font-bold">New Trade Offer</div>
         <ButtonPrimary
           text={"교환 제안"}
@@ -360,80 +391,58 @@ export default function TradingHome() {
 
       <div className="mt-7 grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div className="col-span-2 lg:col-span-1">
-          <div className="border-2 border-orange-400 rounded-md p-4 text-xl flex items-center justify-between">
-            <div>My Wishlist</div>
-            <IoIosArrowDown size={23} />
-          </div>
           <div className="my-7 font-bold text-2xl">
-            <div className="p-2">{"testAccount"}</div>
+            <div className="p-2">{localStorage.getItem("account_name")}</div>
           </div>
           <div className="border-2 border-orange-400 rounded-xl p-6 grid grid-cols-1 lg:grid-cols-3">
-            {choiceNfts !== "" ? (
-              <div
-                key={choiceNfts.asset_id}
-                className="col-start-2 bg-card flex flex-col items-start rounded-xl p-5"
-              >
-                <img
-                  src={"https://ipfs.io/ipfs/" + choiceNfts.template_img}
-                  alt=""
-                ></img>
-                <div className="mt-2 text-sm font-bold">
-                  {choiceNfts.collection_name}
-                </div>
-                <div className="mt-2 text-orange-400 font-bold">
-                  {choiceNfts.template_name}
-                </div>
-                <div className="mt-2 font-bold">{`# ${choiceNfts.template_id}`}</div>
-              </div>
-            ) : null}
+            {choiceNfts.map((item) => {
+              return (
+                <NFTComponent
+                  key={item.asset_id}
+                  item={item}
+                  handleClickNFT={handleRemoveNFT}
+                />
+              );
+            })}
           </div>
-          <div className="bg-card p-6 mt-6 rounded-xl">
+          {/* <div className="bg-card p-6 mt-6 rounded-xl">
             <div className="flex grow border border-orange-400 rounded-xl p-2 mt-3">
               <AiOutlineSearch size={25} />
               <span className="ml-3 text-slate-500">Search in NFTs</span>
             </div>
-            <div className="mt-5">
-              <select
-                className="w-full bg-inherit text-center"
-                placeholder="All collections"
-              >
-                <option className="bg-card" name="type" value="string">
-                  All collections
-                </option>
-              </select>
-            </div>
-          </div>
+          </div> */}
+
           <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-7">
-            {nfts.map((item) => {
+            {nftsInfo.map((item) => {
               return (
-                <div
+                <NFTComponent
                   key={item.asset_id}
-                  className="bg-card flex flex-col items-start rounded-xl p-5"
-                  onClick={() => handleChoiceNFT(item.asset_id)}
-                >
-                  <img
-                    src={"https://ipfs.io/ipfs/" + item.template_img}
-                    alt=""
-                  ></img>
-                  <div className="mt-2 text-sm font-bold">
-                    {item.collection_name}
-                  </div>
-                  <div className="mt-2 text-orange-400 font-bold">
-                    {item.template_name}
-                  </div>
-                  <div className="mt-2 font-bold">{`# ${item.template_id}`}</div>
-                </div>
+                  item={item}
+                  handleClickNFT={handleChoiceNFT}
+                />
               );
             })}
           </div>
+
+          {isMoreData && (
+            <div className="mx-4 mt-10 flex justify-center">
+              <button
+                className="border-2 flex items-center rounded-xl py-4 px-20"
+                onClick={handleLoadMore}
+              >
+                <VscRefresh size={25} />
+                <div className="ml-2 text-lg font-bold ">Load More</div>
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="col-span-2 lg:col-span-1">
-          <div className="invisible border-2 border-orange-400 rounded-md p-4 text-xl flex items-center justify-between">
+          {/* <div className="invisible border-2 border-orange-400 rounded-md p-4 text-xl flex items-center justify-between">
             <div>Opponent Wishlist</div>
             <IoIosArrowDown size={23} />
-          </div>
-          <div className="my-7 font-bold text-2xl">
+          </div> */}
+          <div className="my-7 font-bold text-xl">
             <input
               type="text"
               className="w-full bg-inherit border-2 rounded-lg p-2 active:border-orange-400"
@@ -442,45 +451,72 @@ export default function TradingHome() {
             ></input>
           </div>
 
-          {opponentName !== "" ? (
-            <OppenentUI
-              opponentChoiceNfts={opponentChoiceNfts}
-              opponentNfts={opponentNfts}
-              handleOpponentChoiceNFT={handleOpponentChoiceNFT}
-            />
-          ) : null}
+          <div className="border-2 border-orange-400 rounded-xl p-6 grid grid-cols-1 lg:grid-cols-3">
+            {opponentChoiceNfts.map((item) => {
+              return (
+                <NFTComponent
+                key={item.asset_id}
+                item={item}
+                handleClickNFT={handleRemoveNFTOpponent}
+                />
+              )
+            })}
+          </div>
+          <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-7">
+            {opponentNfts.map((item) => {
+              return (
+                <NFTComponent
+                  key={item.asset_id}
+                  item={item}
+                  handleClickNFT={handleOpponentChoiceNFT}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </>
   );
 }
 
+function Test({item, handleClickNFT}) {
+  return (
+    <div>
+      {item.asset_id}
+    </div>
+  )  
+}
+
+
+function NFTComponent({ item, handleClickNFT }) {
+  return (
+    <div
+      key={item.asset_id}
+      className="bg-card flex flex-col items-start rounded-xl p-5"
+      onClick={() => handleClickNFT(item.asset_id)}
+    >
+      <img src={item.nft_img} alt=""></img>
+      <div className="mt-2 text-sm font-bold">{item.collection_name}</div>
+      <div className="mt-2 text-orange-400 font-bold">{item.nft_name}</div>
+      <div className="mt-2 font-bold text-slate-500">{`# ${item.asset_id}`}</div>
+    </div>
+  );
+}
 
 function OppenentUI({opponentChoiceNfts, opponentNfts, handleOpponentChoiceNFT}) {
 
   return (
     <>
       <div className="border-2 border-orange-400 rounded-xl p-6 grid grid-cols-1 lg:grid-cols-3">
-        {opponentChoiceNfts !== "" ? (
-          <div
-            key={opponentChoiceNfts.asset_id}
-            className="col-start-2 bg-card flex flex-col items-start rounded-xl p-5"
-          >
-            <img
-              src={"https://ipfs.io/ipfs/" + opponentChoiceNfts.template_img}
-              alt=""
-            ></img>
-            <div className="mt-2 text-sm font-bold">
-              {opponentChoiceNfts.collection_name}
-            </div>
-            <div className="mt-2 text-orange-400 font-bold">
-              {opponentChoiceNfts.template_name}
-            </div>
-            <div className="mt-2 font-bold">{`# ${opponentChoiceNfts.template_id}`}</div>
-          </div>
-        ) : null}
+        {opponentChoiceNfts.map((item) => {
+          <NFTComponent
+            key={item.asset_id}
+            item={item}
+            handleClickNFT={handleOpponentChoiceNFT}
+          />;
+        })}
       </div>
-      <div className="bg-card p-6 mt-6 rounded-xl">
+      {/* <div className="bg-card p-6 mt-6 rounded-xl">
         <div className="flex grow border border-orange-400 rounded-xl p-2 mt-3">
           <AiOutlineSearch size={25} />
           <span className="ml-3 text-slate-500">Search in NFTs</span>
@@ -495,28 +531,14 @@ function OppenentUI({opponentChoiceNfts, opponentNfts, handleOpponentChoiceNFT})
             </option>
           </select>
         </div>
-      </div>
+      </div> */}
       <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-7">
         {opponentNfts.map((item) => {
-          return (
-            <div
-              key={item.asset_id}
-              className="bg-card flex flex-col items-start rounded-xl p-5"
-              onClick={() => handleOpponentChoiceNFT(item.asset_id)}
-            >
-              <img
-                src={"https://ipfs.io/ipfs/" + item.template_img}
-                alt=""
-              ></img>
-              <div className="mt-2 text-sm font-bold">
-                {item.collection_name}
-              </div>
-              <div className="mt-2 text-orange-400 font-bold">
-                {item.template_name}
-              </div>
-              <div className="mt-2 font-bold">{`# ${item.template_id}`}</div>
-            </div>
-          );
+          <NFTComponent
+            key={item.asset_id}
+            item={item}
+            handleClickNFT={handleOpponentChoiceNFT}
+          />;
         })}
       </div>
     </>

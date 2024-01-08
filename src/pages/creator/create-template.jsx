@@ -16,24 +16,10 @@ import TemplateAttAdd from "../../component/creator/template-att-add";
 import ButtonPrimary from "../../component/basic/btn-primary";
 import CropImage from "../../component/basic/CropImage";
 import ItemCategory from "../../component/creator/item-category";
+import { GetCategory } from "../../js/api_nft";
+import { useNavigate, useParams } from "react-router-dom";
+import { postJSON } from "../../js/postJson";
 
-async function postJSON(url = "", data = {}) {
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-    console.log("postJSON Success:", result);
-    return result;
-  } catch (error) {
-    console.error("postJSON Error:", error);
-  }
-}
 
 const customModalStyles = {
   overlay: {
@@ -122,6 +108,9 @@ const selectCategoryModalStyles = {
 Modal.setAppElement("#root");
 
 export default function CreateTemplate() {
+
+  const navigate = useNavigate();
+
   const ex_template = {
     creater: "test2",
     collection_name: "crytoguysnft",
@@ -140,6 +129,9 @@ export default function CreateTemplate() {
     private_key: "",
   };
   const [template_info, setTemplate_info] = useState(ex_template);
+
+
+  const {collectionId} = useParams();
 
   const handleTemplateInfo = (e) => {
     console.log("handleTemplateInfo 호출");
@@ -189,23 +181,38 @@ export default function CreateTemplate() {
 
   //카테고리(스키마) 정보 가져오기
   useEffect(() => {
-    const collection_name = "cryptoguynft";
-    const schema_name = "bodies";
+    getCategory();
+  }, []);
 
-    const url = "http://221.148.25.234:3333/GetSchema";
-    const data = {
+  async function getCategory() {
+    const params = {
       datas: {
-        collection_name: collection_name,
+        sort_type: "collection",
+        scope : collectionId,
+        bound: ["", ""],
+        page: 1,
+        perPage: 1000,
       },
     };
+    console.log(`load data - `, params);
+    const response = await GetCategory(params);
 
-    postJSON(url, data).then((data) => {
-      console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
-      const schema_info = data.result.rows;
-      console.log("schema 정보 : ", schema_info);
-      setCategory_info(data.result.rows)
+    process_category_data(response);
+  }
+
+  function process_category_data(data) {
+    console.log("응답 후 데이터 : ", data); // JSON 객체이다. by `data.json()` call
+    const listInfo = data.result.map((item) => {
+      return {
+        schema_name: item.schema_name,
+        att_count : item.format.length,
+        format : item.format
+      };
     });
-  }, []);
+    console.log(`categoryInfo : `, listInfo);
+    setCategory_info(listInfo);
+  }
+
 
   const handleSelectCategory = (schema_name) => {
     console.log("handleSelectCategory 호출", schema_name);
@@ -217,7 +224,10 @@ export default function CreateTemplate() {
   const handleSubmitTemplate = async () => {
     console.log("handleSubmitTemplate 호출");
 
-    if(selectCategory.format.find(item => item.value === undefined) || croppedTemImg === "") {
+    if(selectCategory.format
+      .filter(item => item.name !== "img")
+      .find(item => item.value === undefined) || croppedTemImg === "") {
+
       alert("속성의 value 값을 입력해주세요.")
       return;
     }  
@@ -231,12 +241,11 @@ export default function CreateTemplate() {
     };
 
     const url_img_tem =  await postJSON(url, data_tem_img); // 로고 이미지 ipfs에 저장
-    const ipfs_url = "https://ipfs.io/ipfs/"; // ipfs의 url
-    const path_ipfs_img_tem = ipfs_url+url_img_tem.result; // 로고 이미지의 url 값
+    const path_ipfs_img_tem = url_img_tem.result; // 로고 이미지의 url 값
 
     const new_data = {
-      authorized_creator: "test3",
-      collection_name: "cryptoguynft",
+      authorized_creator: localStorage.getItem("account_name"),
+      collection_name: collectionId,
       schema_name: selectCategory.schema_name,
       transferable : true,
       burnable : true,
@@ -319,7 +328,7 @@ export default function CreateTemplate() {
 
   function closeSuccessModal() {
     setModalSuccessIsOpen(false);
-    // navigate("/creator");
+    navigate(`/creator/collection/${collectionId}`);
   }
 
   function afterSuccessModal() {
@@ -369,7 +378,12 @@ export default function CreateTemplate() {
   return (
     <>
       {/* <button onClick={handleTest}>테스트</button> */}
-      <input id="auth_name" type="hidden" value={"test3"} readOnly></input>
+      <input
+        id="auth_name"
+        type="hidden"
+        value={localStorage.getItem("account_name")}
+        readOnly
+      ></input>
       <input ref={data_Ref} id="data" type="hidden" />
       <input
         id="action_account"
@@ -419,7 +433,7 @@ export default function CreateTemplate() {
               트랜잭션 ID :{" "}
               <a
                 className=" text-orange-500 font-bold"
-                href={`http://cryptoexplorer.store/Transaction/${trxId}`} 
+                href={`http://cryptoexplorer.store/Transaction/${trxId}`}
                 target="_blank"
               >
                 {shortId}
@@ -436,7 +450,6 @@ export default function CreateTemplate() {
           </div>
         </div>
       </Modal>
-
 
       <Modal isOpen={modalTemImage} style={imgModalStyles}>
         <CropImage
@@ -496,10 +509,11 @@ export default function CreateTemplate() {
           <div className="mt-7 grid grid-cols-4 w-full gap-3">
             {category_info.map((item) => (
               <ItemCategory
+                key={item.schema_name}
                 onClick={() => handleSelectCategory(item.schema_name)}
                 schema_name={item.schema_name}
-                collection_name={"cryptoguynft"}
-                att_count={item.format.length}
+                collection_name={collectionId}
+                att_count={item.att_count}
               ></ItemCategory>
             ))}
           </div>
@@ -556,7 +570,7 @@ export default function CreateTemplate() {
               </div>
               <div className="mt-1 font-bold text-sm">{"콜렉션 이름"}</div>
               <div className="mt-1 text-sm">
-                {selectCategory.format.length} Attributes
+                {selectCategory.att_count} Attributes
               </div>
             </div>
           </CardPrimary>
@@ -642,14 +656,19 @@ export default function CreateTemplate() {
           <div className="mt-10">
             <div className="mt-10 text-3xl font-bold">속성</div>
             <div className="mt-8">
-              {selectCategory.format.map((item) => (
-                <TemplateAttAdd
-                  css={"mt-4"}
-                  key_name={item.name}
-                  valueType={item.type}
-                  onChangeValue={handleImmutableData}
-                />
-              ))}
+              {selectCategory.format
+              .filter(item => item.name !== "img")
+              .map((item) => {
+                return (
+                  <TemplateAttAdd
+                    key={item.name}
+                    css={"mt-4"}
+                    key_name={item.name}
+                    valueType={item.type}
+                    onChangeValue={handleImmutableData}
+                  />
+                );
+              })}
             </div>
           </div>
 

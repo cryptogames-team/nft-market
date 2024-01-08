@@ -50,11 +50,11 @@ export default function ExplorerTemplate() {
     openWaitingModal();
 
     const new_data = {
-      authorized_minter: "test3",
-      collection_name: "cryptoguynft",
-      schema_name: "bodies",
-      template_id: 1,
-      new_asset_owner: "test3",
+      authorized_minter: localStorage.getItem("account_name"),
+      collection_name: template_info.collection_name,
+      schema_name: template_info.schema_name,
+      template_id: template_info.template_id,
+      new_asset_owner: localStorage.getItem("account_name"),
       mutable_data: "",
       immutable_data: [],
       tokens_to_back: [],
@@ -97,7 +97,6 @@ export default function ExplorerTemplate() {
   const [shortId, setShortId] = useState("");
   function openSuccessModal(trx_id) {
     setModalSuccessIsOpen(true);
-    const url_explorer = "http://cryptoexplorer.store/Transaction/";
     setTrxId(trx_id);
     setShortId(short_trx_id(trx_id));
   }
@@ -138,7 +137,7 @@ export default function ExplorerTemplate() {
 
   return (
     <>
-      <input id="auth_name" type="hidden" value={"test3"} readOnly></input>
+      <input id="auth_name" type="hidden" value={localStorage.getItem("account_name")} readOnly></input>
       <input ref={data_Ref} id="data" type="hidden" />
       <input
         id="action_account"
@@ -287,7 +286,7 @@ export default function ExplorerTemplate() {
           <tbody>
             {template_info.immutable_serialized_data.map((item) => {
               return (
-                <tr>
+                <tr key={item.key}>
                   <td className="p-4 border border-slate-500 font-bold">
                     {item.key}
                   </td>

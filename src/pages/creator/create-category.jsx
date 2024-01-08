@@ -8,6 +8,7 @@ import {
 import { FaRegLightbulb } from "react-icons/fa";
 import { GiCancel } from "react-icons/gi";
 import { RxTriangleDown } from "react-icons/rx";
+import { MdOutlineSmsFailed } from "react-icons/md";
 
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -16,7 +17,7 @@ import CreatorHeader from "../../component/creator/creator-header";
 import CardPrimary from "../../component/creator/card-primary";
 import CategoryAttribute from "../../component/creator/category-attribute";
 import ButtonPrimary from "../../component/basic/btn-primary";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 
 Modal.setAppElement("#root");
 
@@ -50,6 +51,9 @@ const customModalStyles = {
 
 export default function CreateCategory() {
   const navigate = useNavigate();
+  const {collectionId} = useParams();
+  console.log(`useParams를 통해 전달받은 값 : `, collectionId);
+
 
   const initialCategory = {
     category_name: "",
@@ -135,8 +139,8 @@ export default function CreateCategory() {
     console.log(`merge_att : `, merge_att);
 
     const new_data = {
-      authorized_creator: "test3",
-      collection_name: "cryptoguynft",
+      authorized_creator: localStorage.getItem("account_name"),
+      collection_name: collectionId,
       schema_name: category_info.category_name,
       schema_format: merge_att.map(item => {
         return {name : item.name, type : item.type}
@@ -162,14 +166,26 @@ export default function CreateCategory() {
 
   const handleCompleteTrx = () => {
     console.log("handleCompleteTrx 호출");
-    console.log(`transaction id : `, JSON.parse(ref_result.current.value).transaction_id);
-
+    
     closeWaitingModal();
-    openSuccessModal(JSON.parse(ref_result.current.value).transaction_id);
+
+    
+    if(ref_status.current.value === "SUCCESS") {
+      // 트랜잭션 성공 시
+
+      console.log(`transaction id : `, JSON.parse(ref_result.current.value).transaction_id);
+      openSuccessModal(JSON.parse(ref_result.current.value).transaction_id);
+
+    } else {
+      // 트랜잭션 실패시
+      setModalFailIsOpen(true);
+    }
+    
   }
 
   const [modalWaitingIsOpen, setModalWaitingIsOpen] = useState(false);
   const [modalSuccessIsOpen, setModalSuccessIsOpen] = useState(false);
+  const [modalFailIsOpen, setModalFailIsOpen] = useState(false);
 
    // 트랜잭션 대기 관련 모달..?
    function openWaitingModal() {
@@ -206,7 +222,7 @@ export default function CreateCategory() {
 
   function closeSuccessModal() {
     setModalSuccessIsOpen(false);
-    // navigate("/creator");
+    navigate(`/creator/collection/${collectionId}`);
   }
 
   function afterSuccessModal() {
@@ -220,7 +236,7 @@ export default function CreateCategory() {
   return (
     <>
       {/* <button onClick={handleTest}>테스트</button> */}
-      <input id="auth_name" type="hidden" value={"test3"} readOnly></input>
+      <input id="auth_name" type="hidden" value={localStorage.getItem("account_name")} readOnly></input>
       <input ref={data_Ref} id="data" type="hidden" />
       <input
         id="action_account"
@@ -288,6 +304,26 @@ export default function CreateCategory() {
         </div>
       </Modal>
 
+      <Modal
+        isOpen={modalFailIsOpen}
+        style={customModalStyles}
+      >
+        <div className="font-san w-full h-full flex flex-col justify-center">
+          <div className="flex-grow flex flex-col justify-center items-center">
+            <MdOutlineSmsFailed  className="text-red-400" size={80} />
+            <div className="mt-10 text-4xl">트랜잭션 실패</div>
+          </div>
+          <div className="flex justify-center">
+            <button
+              className="mt-10 border rounded-3xl w-11/12 h-9"
+              onClick={() => setModalFailIsOpen(false)}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      </Modal>
+
 
 
       <CreatorHeader
@@ -337,7 +373,7 @@ export default function CreateCategory() {
 
             {category_info.category_att.map((item) => {
               return (
-                <div className="grid grid-cols-1 lg:grid-cols-12 place-items-center">
+                <div key={`name_${item.id}`} className="grid grid-cols-1 lg:grid-cols-12 place-items-center">
                   <CategoryAttribute
                     key={`name_${item.id}`}
                     text={item.name}
@@ -354,7 +390,7 @@ export default function CreateCategory() {
 
             {newAttList.map((item) => {
               return (
-                <div className="grid grid-cols-1 lg:grid-cols-12 place-items-center">
+                <div key={item.id} className="grid grid-cols-1 lg:grid-cols-12 place-items-center">
                   <CategoryAttribute css={"mt-7 p-5 w-10/12 col-span-5"}>
                     <input
                       type="text"

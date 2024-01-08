@@ -28,11 +28,11 @@ export default function TemplateAttAdd({ css, key_name, valueType,onChangeValue 
           <div className="mt-2">
             <input
               type="text"
-              className="w-full p-2 border-solid border rounded-lg bg-body"
+              className={`w-full p-2 border-solid border rounded-lg bg-body`}
               placeholder={valueType}
               name={key_name}
               value={typeValue}
-              onChange={handleChangeType}
+              onChange={handleChangeType}              
             ></input>
           </div>
         </div>

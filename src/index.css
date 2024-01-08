@@ -8,6 +8,7 @@
   --color-mint : #080C21;
   --color-text : white;
   --color-tip : #b6c2ee;
+  --color-footer-card  : rgba(226,230,247,.08);
 }
 
 body {
@@ -58,6 +59,10 @@ code {
 }
 
 
+.bg-footer-card {
+  background-color: var(--color-footer-card);
+}
+
 
 .card-input-primary {
   background-color: transparent;
@@ -74,4 +79,33 @@ code {
 
 .ReactModal__Overlay--before-close{
   opacity: 0;
+}
+
+.h-scr::-webkit-scrollbar {
+  width: 10px;
+}
+
+.h-scr::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 10px;
+}
+
+.h-scr::-webkit-scrollbar-track {
+  background-color: #2f3542;  
+  border-radius: 10px;
+}
+
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #2f3542;
+  border-radius: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background-color: grey;
+  border-radius: 10px;
 }

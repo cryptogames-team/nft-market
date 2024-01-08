@@ -37,6 +37,10 @@ import MarketHome from './pages/market/market-home';
 import ExplorerNFT from './pages/explorer/explorer-nft';
 import ProfileIndex from './pages/profile/profile-index';
 import ProfileHome from './pages/profile/profile-home';
+import MarketSale from './pages/market/market-sale';
+import { markeSaleLoader } from './js/market-router';
+import ProfileSetting from './pages/profile/profile-setting';
+import TradingOffer from './pages/trading/trade-offers';
 
 
 const router = createBrowserRouter([
@@ -54,8 +58,8 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <CreatorHome /> },
           { path: "create-collection", element: <CreateCollection /> },
-          { path: "create-category", element: <CreateCategory /> },
-          { path: "create-template", element: <CreateTemplate /> },
+          { path: ":collectionId/create-category", element: <CreateCategory /> },
+          { path: ":collectionId/create-template", element: <CreateTemplate /> },
           { path: "collection/:collectionId", element: <ManageCollection />, loader : creatorCollectionLoader },
         ],
       },
@@ -64,8 +68,7 @@ const router = createBrowserRouter([
         element: <MarketIndex />,
         children: [
           { index: true, element: <MarketHome /> },
-          // { path: "collection/:collectionId", element: <ExplorerCollection />, loader : explorerCollectionLoader,},
-          // { path: "template/:collectionId/:templateId", element: <ExplorerTemplate />, loader : explorerTemplateLoader,},
+          { path: "sale/:saleId", element: <MarketSale /> , loader : markeSaleLoader,},
         ],
       },
       {
@@ -83,7 +86,7 @@ const router = createBrowserRouter([
         element: <TradingIndex />,
         children: [
           { index: true, element: <TradingHome /> },
-          { path: "collection/:collectionId", element: <ExplorerCollection />, loader : explorerCollectionLoader,},
+          { path: "trade-offers", element: <TradingOffer />, loader : explorerCollectionLoader,},
           { path: "template/:collectionId/:templateId", element: <ExplorerTemplate />, loader : explorerTemplateLoader,},
         ],
       },
@@ -92,6 +95,7 @@ const router = createBrowserRouter([
         element: <ProfileIndex />,
         children: [
           { index: true, element: <ProfileHome /> },
+          { path: "setting", element: <ProfileSetting /> },
         ],
       },
     ],

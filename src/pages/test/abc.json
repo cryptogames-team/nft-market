@@ -1,0 +1,28 @@
+{
+  "datas": {
+    "senderPrivateKey": "5JwpGuCc1y63xDe6TPxZzf9NJLqGj5eYNTwttVifcqTPxmbyR1Z",
+    "auth_name": "producer1",
+    "datas": [
+      {
+        "action_account": "eosio.token",
+        "action_name": "transfer",
+        "data": {
+          "from": "producer1",
+          "to": "producer2",
+          "quantity": "1.0000 HEP",
+          "memo": "dd"
+        }
+      },
+      {
+        "action_account": "eosio.market",
+        "action_name": "buynft",
+        "data": {
+          "buyer": "producer1",
+          "asset_id": [1099511627776],
+          "sale_id": 1,
+          "offer_id": 1
+        }
+      }
+    ]
+  }
+}
