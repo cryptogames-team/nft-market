@@ -74,7 +74,7 @@ export default function Root() {
 
       console.log(`계정 이름 : ${nameValue}, 공개 키 : ${keyValue}`);
       
-      const url = "http://221.148.25.234:6666/user";
+      const url = `${process.env.API_URL}/user`;
       const data = {
         user_name : nameValue
       };
