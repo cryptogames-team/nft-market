@@ -56,13 +56,13 @@ export default function ProfileHome() {
               <BiLinkExternal className="ml-2" size={20} />
             </div>
             <div>
-              <ButtonPrimary text={"프로필 편집하기"} />
+              {/* <ButtonPrimary text={"프로필 편집하기"} /> */}
             </div>
           </div>
         </div>
 
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className="col-span-3 flex flex-col bg-card py-9 px-8 rounded-xl">
+          {/* <div className="col-span-3 flex flex-col bg-card py-9 px-8 rounded-xl">
             <div className="font-bold">Info</div>
 
             <div className="mt-4 flex items-center">
@@ -82,7 +82,7 @@ export default function ProfileHome() {
               <div className="ml-2">인벤토리 총합 : </div>
               <div className="ml-2">1.92 Hep</div>
             </div>
-          </div>
+          </div> */}
 
           <div className="col-span-9 flex flex-col">
             <div className="font-bold text-2xl">Profile Page</div>
@@ -237,7 +237,7 @@ function NFTComponent({ item, handleClickNFT}) {
       className="bg-card flex flex-col items-start rounded-xl p-5"
       onClick={() => handleClickNFT(item.user_name, item.asset_id)}
     >
-      <img src={item.nft_img} alt=""></img>
+      <img width={250} src={item.nft_img} alt=""></img>
       <div className="mt-2 text-sm font-bold">{item.collection_name}</div>
       <div className="mt-2 text-orange-400 font-bold">{item.nft_name}</div>
       <div className="mt-2 font-bold text-slate-500">{`# ${item.asset_id}`}</div>
@@ -341,7 +341,7 @@ function ListingComponent({ item, handleClickListing}) {
       onClick={() => handleClickListing(item.user_name, item.sale_id)}
     >
       <div className='pt-5 px-5'>
-        <img src={item.asset_img} alt=""></img>
+        <img width={250} src={item.asset_img} alt=""></img>
         <div className="mt-2 text-sm font-bold">{item.collection_name}</div>
         <div className="mt-2 text-orange-400 font-bold">{item.asset_name}</div>
         <div className="mt-2 font-bold text-lime-400">{`${item.price}`}</div>

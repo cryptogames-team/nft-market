@@ -233,7 +233,7 @@ export default function MarketHome() {
       
 
       // 장바구니 삭제 요청을 보낸다.
-      let url = `http://221.148.25.234:6666/cart/bySaleId/${sale_id}`;
+      const url = `${process.env.REACT_APP_API_URL}/cart/bySaleId/${sale_id}`;
       new_deleteJSON_by_token_data(url, {
         secretKey: "crypto-games-market-scret-key",
       })
@@ -478,7 +478,7 @@ function MarketItemComponent({item, handleBuyItem}) {
   const [isCart, setIsCart] = useState(false);
 
   useEffect(() => {
-    const url = "http://221.148.25.234:6666/cart/";
+    const url = `${process.env.REACT_APP_API_URL}/cart/`;
 
     if(isLogin.isLogin) {
       console.log(`로그인되어있음...`);
@@ -537,7 +537,7 @@ function MarketItemComponent({item, handleBuyItem}) {
   const handleAddCart = () => {
     console.log("handleAddCart 호출");
     if(isLogin.isLogin){
-      const url = "http://221.148.25.234:6666/cart/";
+      const url = `${process.env.REACT_APP_API_URL}/cart/`;
       const params = {
         sale_id: item.sale_id,
         collection_name: item.collection_name,
@@ -562,7 +562,7 @@ function MarketItemComponent({item, handleBuyItem}) {
 
   const handleRemoveCart = () => {
     console.log("handleRemoveCart 호출", item.sale_id);
-    const url = `http://221.148.25.234:6666/cart/removeBySaleID/${item.sale_id}`;
+    const url = `${process.env.REACT_APP_API_URL}/cart/removeBySaleID/${item.sale_id}`;
     new_deleteJSON_by_token(url).then(response => {
       setIsCart(false);
     });    
@@ -577,7 +577,7 @@ function MarketItemComponent({item, handleBuyItem}) {
         className="bg-card flex flex-col items-start rounded-xl col-span-2 lg:col-span-1 overflow-hidden"
       >
         <div className="px-5" onClick={() => handleClickSaleItem(item.sale_id)}>
-          <img className="mt-4" src={item.asset_img} alt=""></img>
+          <img className="mt-4" width={250} src={item.asset_img} alt=""></img>
           <div className="mt-2 text-sm font-bold">{item.collection_name}</div>
           <div className="mt-2 text-orange-400 font-bold">
             {item.asset_name}

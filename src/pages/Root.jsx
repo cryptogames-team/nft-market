@@ -74,7 +74,7 @@ export default function Root() {
 
       console.log(`계정 이름 : ${nameValue}, 공개 키 : ${keyValue}`);
       
-      const url = `${process.env.API_URL}/user`;
+      const url = `${process.env.REACT_APP_API_URL}/user`;
       const data = {
         user_name : nameValue
       };

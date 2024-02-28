@@ -126,7 +126,7 @@ export async function new_postJSON_by_token(url = "", data = {}) {
   export async function isLogin_user() {
     
     try {
-      const url = "http://221.148.25.234:6666/user/isAuth";
+      const url = `${process.env.REACT_APP_API_URL}/user/isAuth`;
       const res = await new_postJSON_by_token(url, {});
       console.log(`로그인 되어있음`, res);
       return res;

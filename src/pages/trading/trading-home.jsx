@@ -292,7 +292,7 @@ export default function TradingHome() {
 
   function closeSuccessModal() {
     setModalSuccessIsOpen(false);
-    navigate("profile?selectedTab=Transfer");
+    navigate("/trading/trade-offers?selectedTab=Sent");
   }
 
   function afterSuccessModal() {}

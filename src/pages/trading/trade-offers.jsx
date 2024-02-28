@@ -141,6 +141,12 @@ function TabSend(params) {
       console.log(`load data - `, params);
       const offerInfo = await GetOffer(params);
 
+      console.log("offer info 찍어보기", offerInfo)
+
+      if(offerInfo.result === "데이터 없음") {
+        return;
+      }
+
       console.log(`offerInfo : `, offerInfo);
       setSendOffers((prev) => [...prev, ...offerInfo]);
       if(page === 1) {
@@ -158,7 +164,7 @@ function TabSend(params) {
     <>
       <div className="grid grid-cols-12 gap-5">
         <div className="col-span-4">
-          {sendOffers.map((item) => (
+          {sendOffers?.map((item) => (
             <OfferSentItem
               key={item.offer_id}
               offer_info={item}
@@ -208,11 +214,11 @@ function OfferSentItem({offer_info, handleSelectOffer}) {
         </div>
         <div className="flex items-center">
             <div className="p-4">
-                <img className="w-20 rounded-lg" src={offer_info.sender_asset_img}></img>
+                <img width={80} className=" rounded-lg" src={offer_info.sender_asset_img}></img>
             </div>
             <FaExchangeAlt size={20} />
             <div className="p-4">
-                <img className="w-20 rounded-lg" src={offer_info.recipient_asset_img}></img>
+                <img width={80} className=" rounded-lg" src={offer_info.recipient_asset_img}></img>
             </div>
             
         </div>
@@ -484,6 +490,10 @@ function TabReceive(params) {
     console.log(`load data - `, params);
     const offerInfo = await GetOffer(params);
 
+    if(offerInfo.result === "데이터 없음") {
+      return;
+    }
+
     console.log(`offerInfo : `, offerInfo);
     setSendOffers((prev) => [...prev, ...offerInfo]);
     if (page === 1) {
@@ -542,6 +552,7 @@ function SelectedReceiveOffer({offer_info, getSenderOffer}) {
       ref_wallet_finish,
     } = useOutletContext();
     console.log(`SelectedSentOffer : `, useOutletContext());
+    const navigate = useNavigate();
 
     const handleAcceptOffer = () => {
         console.log("handleAcceptOffer 호출");
@@ -661,6 +672,7 @@ function SelectedReceiveOffer({offer_info, getSenderOffer}) {
   
     function closeSuccessModal() {
       setModalSuccessIsOpen(false);
+      navigate("/profile?selectedTab=Inventory");
       // navigate(`/profile?selectedTab=Bought`);
     //   getSenderOffer(); // 화면 갱신
     }

@@ -235,7 +235,7 @@ export default function CreateTemplate() {
     openWaitingModal();
 
     // 이미지 ipfs에 등록
-    const url = "http://221.148.25.234:3333/UploadIPFS";
+    const url = `${process.env.REACT_APP_MARKET_URL}/UploadIPFS`;
     const data_tem_img = {
       img: croppedTemImg,
     };

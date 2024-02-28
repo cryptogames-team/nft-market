@@ -46,9 +46,9 @@ export default function TestPage() {
       closeTimeoutMS={1000}
     >
       <button onClick={togglePopup}>모달창 닫기</button>
-      <div>
+      {/* <div>
         테스트
-      </div>      
+      </div>       */}
       
     </Modal>
     <button onClick={togglePopup}>모달 테스트</button>

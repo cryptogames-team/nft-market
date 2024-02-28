@@ -17,6 +17,8 @@ import ButtonPrimary from "../../component/basic/btn-primary";
 import CropImage from "../../component/basic/CropImage";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
+import loading from "../../asset/loading2.gif";
+
 const customModalStyles = {
   overlay: {
     backgroundColor: " rgba(0, 0, 0, 0.4)",
@@ -155,7 +157,7 @@ export default function CreateCollection() {
     openWaitingModal();
 
     // 1. ipfs를 통해 키값 받아오기.
-    const url = "http://221.148.25.234:3333/UploadIPFS";
+    const url = `${process.env.REACT_APP_MARKET_URL}/UploadIPFS`;
     const data_logo_img = {
       img: collectionInput.img_logo,
     };
@@ -163,11 +165,16 @@ export default function CreateCollection() {
       img: collectionInput.img_background,
     };
 
+    console.log("ipfs 요청 보내기...");
+
     const url_img_logo =  await postJSON(url, data_logo_img); // 로고 이미지 ipfs에 저장
     const url_img_background =  await postJSON(url, data_logo_background); // 배경 이미지 ipfs에 저장
 
     const path_ipfs_img_logo = url_img_logo.result; // 로고 이미지의 url 값
     const path_ipfs_img_background = url_img_background.result; // 배경 이미지의 url 값
+
+    console.log("*************ipfs 값 ", data_logo_img);
+    console.log("ipfs 값2 ", data_logo_img);
 
 
     // 2. data 형식에 맞게 데이터 재조립...
@@ -383,16 +390,15 @@ export default function CreateCollection() {
 
 
   return (
-    <>
-    <button onClick={handleTest}>테스트</button>
-      
+    <>      
       <Modal
         isOpen={modalWaitingIsOpen}
         onAfterOpen={afterWaitingModal}
         style={customModalStyles}
       >
         <div className="font-san w-full h-full flex flex-col justify-center items-center">
-          <AiOutlineLoading3Quarters size={80} />
+          {/* <AiOutlineLoading3Quarters size={80} /> */}
+          <img src={loading} width={130}></img>
           <div className="mt-10 text-4xl">트랜잭션 생성 중</div>
           <div className="mt-10">지갑을 통해 트랜잭션을 확인해주세요. </div>
           {/* <button onClick={closeWaitingModal}>닫기</button> */}

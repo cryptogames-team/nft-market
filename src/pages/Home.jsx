@@ -129,8 +129,7 @@ function News() {
           <div className="px-5 pt-3 pb-3">
             <div className="text-slate-400 text-sm mt-10 mb-3">2023.11.20 (월)</div>
             <div className="font-bold text-xl">
-              크립토 가이즈 - Heptagon 기반 라스트 맨 스탠딩 장르 게임 출시
-              임박!
+              <a>크립토 가이즈 - Heptagon 기반 라스트 맨 스탠딩 장르 게임 출시임박!</a>
             </div>
           </div>
         </div>
@@ -140,7 +139,7 @@ function News() {
             <div className="col-span-2">
               <div className="text-slate-400 mb-2">2023.11.18 (토)</div>
               <div className="font-bold text-xl">
-                크립토 팜 - Heptagon 기반 농장 재배 및 자원 채굴 게임 출시 임박!{" "}
+                <a href='https://crypto-farm.store' target='_blank' className=''>크립토 팜 - Heptagon 기반 농장 재배 및 자원 채굴 게임 출시 임박!{" "}</a>
               </div>
             </div>
           </div>
@@ -149,7 +148,7 @@ function News() {
             <div className="col-span-2">
               <div className="text-slate-400 mb-2">2023.11.16 (목)</div>
               <div className="font-bold text-xl">
-                크립토 익스플로러 - Heptagon 기반 블록 탐색기 출시
+                <a href='https://cryptoexplorer.store' target='_blank'>크립토 익스플로러 - Heptagon 기반 블록 탐색기 출시</a>
               </div>
             </div>
           </div>
@@ -158,7 +157,7 @@ function News() {
             <div className="col-span-2">
               <div className="text-slate-400 mb-2">2023.11.14 (화)</div>
               <div className="font-bold text-xl">
-                Hep Wallet - Heptagon 기반 HD Wallet 출시
+                <a>Hep Wallet - Heptagon 기반 HD Wallet 출시</a>
               </div>
             </div>
           </div>

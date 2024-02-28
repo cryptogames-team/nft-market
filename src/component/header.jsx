@@ -25,6 +25,7 @@ import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import { isLogin_user, new_deleteJSON_by_token, new_deleteJSON_by_token_data, new_getJSON, new_getJSON_by_token, new_postJSON, new_postJSON_by_token } from "../js/api-new";
 import { useRef } from "react";
+import { LiaExchangeAltSolid } from "react-icons/lia";
 
 const customModalStyles = {
   overlay: {
@@ -98,7 +99,9 @@ export default function Header({
 
       console.log(`계정 이름 : ${nameValue}, 공개 키 : ${keyValue}`);
       
-      const url = "http://221.148.25.234:6666/user";
+      const url = `${process.env.REACT_APP_API_URL}/user`;
+      console.log("url, ", process.env.REACT_APP_API_URL);
+      console.log("찍힌 url : ", url)
       const data = {
         user_name : nameValue
       };
@@ -123,7 +126,14 @@ export default function Header({
   async function getAccountInfo(accountName) {
     const rpc = new JsonRpc("http://14.63.34.160:8888");
     const response = await rpc.get_account(accountName);
-    let balance = response.core_liquid_balance;
+    let balance = "0.0000 HEP";
+    console.log("밸런스", response.core_liquid_balance)
+    if(response.core_liquid_balance !== undefined) {
+      balance = response.core_liquid_balance;
+    }
+    
+    console.log("response ", response);
+    console.log("balance ", balance);
     let modifyBalance = balance.replace(".0000", "");
     setUserInfo((prev) => ({
       ...prev,
@@ -161,8 +171,8 @@ export default function Header({
    const [cartList, setCartList] = useState([]);
 
    const handleClickCart = () => {
-     console.log("handleClickCart 호출");
-     const url = "http://221.148.25.234:6666/cart/";
+     console.log("handleClickCart 호출");     
+     const url = `${process.env.REACT_APP_API_URL}/cart`;
      new_getJSON_by_token(url).then(response => {
       // console.log(`장바구니 데이터 : `, response);
       process_basket(response);
@@ -218,7 +228,7 @@ export default function Header({
 
       // 장바구니 삭제 요청을 보낸다.
       cartList.map((item) => {
-        let url = `http://221.148.25.234:6666/cart/bySaleId/${item.sale_id}`;
+        const url = `${process.env.REACT_APP_API_URL}/cart/bySaleId/${item.sale_id}`;
         new_deleteJSON_by_token_data(url, {
           secretKey: "crypto-games-market-scret-key",
         })
@@ -356,21 +366,22 @@ export default function Header({
       <header className="border-b-2 border-gray-700 flex justify-center p-4 w-full h-24">
         <div className="flex container items-center">
           <Link to={"/"} className="md:grow-0 grow text-2xl font-bold">
+            <img ></img>
             NFT 거래소
           </Link>
 
-          <nav className="mx-6 md:flex hidden items-center justify-start space-x-4">
+          <nav className="flex-1 mx-6 md:flex hidden items-center justify-start space-x-4">
             <Link to={"explorer"}>Explorer</Link>
             <Link to={"market"}>Market</Link>
             <button onClick={handleClickTrading}>Trading</button>
             <button onClick={handleClickCreator}>NFT Creator</button>
           </nav>
 
-          <div className="md:flex hidden grow border rounded-xl w-2/5 p-2 mx-3">
+          {/* <div className="md:flex hidden grow border rounded-xl w-2/5 p-2 mx-3">
             <AiOutlineSearch size={25} />
           </div>
 
-          <AiOutlineSearch size={25} className="md:hidden mx-3" />
+          <AiOutlineSearch size={25} className="md:hidden mx-3" /> */}
 
           {isLogin === true ? (
             <>
@@ -482,7 +493,7 @@ function MenuModal({isOpen, setIsOpen, setIsLogin, userInfo}) {
 
    const handleSettingPageMove = () => {
     console.log("handleSettingPageMove 호출");
-    navigate(`/profile/setting`)   
+    navigate(`/trading/trade-offers?selectedTab=Sent`)   
     setIsOpen(prev => !prev);
   }
 
@@ -505,7 +516,7 @@ function MenuModal({isOpen, setIsOpen, setIsLogin, userInfo}) {
             <div className="ml-3 flex flex-col">
               <div className="flex-grow font-bold text-lg">{localStorage.getItem('account_name')}</div>
               <div className="flex-grow font-bold text-slate-500">
-                내 프로필 확인하기
+                {/* 내 프로필 확인하기 */}
               </div>
             </div>
           </div>
@@ -541,6 +552,16 @@ function MenuModal({isOpen, setIsOpen, setIsLogin, userInfo}) {
             </div>
 
             <div className="mt-10 flex items-center">
+              <LiaExchangeAltSolid className="text-white" size={35} />
+              <div className="flex flex-col ml-3" onClick={handleSettingPageMove}>
+                <div className="text-xl font-bold">오퍼 수락 및 거절</div>
+                <div className="text-slate-500 text-sm">
+                  오퍼의 수락과 거절을 하실 수 있습니다.
+                </div>
+              </div>
+            </div>
+
+            {/* <div className="mt-10 flex items-center">
               <AiOutlineSetting className="text-white" size={35} />
               <div className="flex flex-col ml-3" onClick={handleSettingPageMove}>
                 <div className="text-xl font-bold">계정 설정</div>
@@ -548,7 +569,7 @@ function MenuModal({isOpen, setIsOpen, setIsLogin, userInfo}) {
                   계정을 관리할 수 있습니다.
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="self-end flex items-center p-2" onClick={handleLogout}>
@@ -604,7 +625,7 @@ function BasketModal({isOpen, setIsOpen, cartList, setCartList, buyCart}) {
   const handleRemoveItem = (cart_id) => {
     console.log("handleRemoveItem 호출");
 
-    const url = `http://221.148.25.234:6666/cart/remove/${cart_id}`;
+    const url = `${process.env.REACT_APP_API_URL}/cart/remove/${cart_id}`;
     new_deleteJSON_by_token(url).then(response => {
       console.log(`장바구니 삭제 `, response);
       setCartList(prev => {
@@ -615,8 +636,8 @@ function BasketModal({isOpen, setIsOpen, cartList, setCartList, buyCart}) {
 
   const handleRemoveAllItem = () => {
     console.log("handleRemoveAllItem 호출");
-    
-    const url = `http://221.148.25.234:6666/cart/removeall`;
+
+    const url = `${process.env.REACT_APP_API_URL}/cart/removeall`;
     new_deleteJSON_by_token(url).then(response => {
       console.log(`장바구니 모두 삭제 `, response);
       setCartList([])  
