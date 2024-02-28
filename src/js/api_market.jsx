@@ -2,7 +2,7 @@ import {JsonRpc} from "eosjs";
 
 export async function GetMarket(params) {
   console.log(`GetMarket 호출 : `, params);
-  const rpc = new JsonRpc("http://14.63.34.160:8888");
+  const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
 
   const { sort_type, bound, page, perPage, filter_datas = [0, 100000], selectFilter} = params.datas;
   console.log(`sort type - `, sort_type);

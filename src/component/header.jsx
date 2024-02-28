@@ -124,7 +124,7 @@ export default function Header({
   }
 
   async function getAccountInfo(accountName) {
-    const rpc = new JsonRpc("http://14.63.34.160:8888");
+    const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
     const response = await rpc.get_account(accountName);
     let balance = "0.0000 HEP";
     console.log("밸런스", response.core_liquid_balance)

@@ -2,7 +2,8 @@ import {JsonRpc} from "eosjs";
 
 export async function GetNFT(params) {
     console.log(`GetNFT 호출 : `, params);
-    const rpc = new JsonRpc("http://14.63.34.160:8888");
+    console.log("")
+    const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
   
     const { sort_type, scope, bound, page, perPage } = params.datas;
     // console.log(`sort type - `, sort_type);
@@ -70,7 +71,7 @@ export async function GetNFT(params) {
 
   export async function GetCollection(params) {
     console.log(`GetCollection 호출 : `, params);
-    const rpc = new JsonRpc("http://14.63.34.160:8888");
+    const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
   
     const { sort_type, scope, bound, page, perPage } = params.datas;
     console.log(`sort type - `, sort_type);
@@ -132,7 +133,7 @@ export async function GetNFT(params) {
 
   export async function GetTemplate(params) {
     console.log(`GetTemplate 호출 : `, params);
-    const rpc = new JsonRpc("http://14.63.34.160:8888");
+    const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
   
     const { sort_type, scope, bound, page, perPage } = params.datas;
     console.log(`sort type - `, sort_type);
@@ -199,7 +200,7 @@ export async function GetNFT(params) {
 
   export async function GetCategory(params) {
     console.log(`GetCategory 호출 : `, params);
-    const rpc = new JsonRpc("http://14.63.34.160:8888");
+    const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
 
     const { sort_type, scope, bound, page, perPage } = params.datas;
     console.log(`sort type - `, sort_type);
@@ -247,7 +248,7 @@ export async function GetNFT(params) {
 
   export async function GetOffer(params) {
     console.log(`GetOffer 호출 : `, params);
-    const rpc = new JsonRpc("http://14.63.34.160:8888");
+    const rpc = new JsonRpc(`${process.env.REACT_APP_BLOCKCHAIN_URL}`);
 
     const { sort_type, scope, bound, page, perPage } = params.datas;
     console.log(`sort type - `, sort_type);
